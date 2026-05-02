@@ -1,8 +1,14 @@
-classdef CustomControllerPolicy < rl.policy.Policy
+classdef CustomControllerPolicy
     % CustomControllerPolicy - 将自定义控制器适配为 RL Policy
     % 
     % 这个类使用适配器模式，将你的规则型、PID、MPC等控制器
     % 转换为 MATLAB RL 工具箱兼容的策略对象
+    % 
+    % 关键特性：
+    %   - 不需要继承 rl.policy.Policy（兼容性更好）
+    %   - 支持离散和连续动作空间
+    %   - 自动处理观测和动作格式转换
+    %   - 与 sim(env, policy) 完全兼容
     % 
     % 使用方法：
     %   controller = RuleBasedController(config);
@@ -23,9 +29,6 @@ classdef CustomControllerPolicy < rl.policy.Policy
             %   controller: 自定义控制器对象（需要有 getAction 方法）
             %   obsInfo:    rlNumericSpec 或 rlFiniteSetSpec
             %   actInfo:    rlFiniteSetSpec 或 rlNumericSpec
-            
-            % 调用父类初始化
-            obj@rl.policy.Policy(obsInfo, actInfo);
             
             % 保存控制器和空间信息
             obj.Controller = controller;
@@ -53,7 +56,7 @@ classdef CustomControllerPolicy < rl.policy.Policy
             catch ME
                 % 如果控制器没有 getAction 方法，尝试直接计算
                 warning('CustomControllerPolicy: 控制器不支持 getAction 方法。错误: %s', ME.message);
-                action = 0;  % 默认动��
+                action = 0;  % 默认动作
             end
             
             % 将动作转换为 RL 工具箱格式
@@ -96,21 +99,6 @@ classdef CustomControllerPolicy < rl.policy.Policy
                 % 其他情况，直接返回
                 action = rawAction;
             end
-        end
-        
-        function updateInfo(obj, obsInfo, actInfo)
-            % 更新观测和动作空间信息
-            obj.ObservationInfo = obsInfo;
-            obj.ActionInfo = actInfo;
-        end
-    end
-    
-    methods (Access = protected)
-        % 这些方法是为了与 RL 工具箱完全兼容而添加的
-        
-        function action = evaluatePolicy(obj, observation)
-            % 评估策略（由 MATLAB RL 工具箱调用）
-            action = getAction(obj, observation);
         end
     end
 end
